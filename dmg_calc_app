@@ -1,0 +1,313 @@
+import random
+import math
+import tkinter as tk
+
+root = tk.Tk()
+root.title('Status Panel')
+
+attacker_status = {
+    "enraged": tk.BooleanVar(),
+    "bleeding": tk.BooleanVar(),
+    "poisoned": tk.BooleanVar(),
+    "burned": tk.BooleanVar(),
+    "stunned": tk.BooleanVar(),
+    "confused": tk.BooleanVar(),
+    "disarmed": tk.BooleanVar(),
+}
+
+defender_status = {
+    'shielded': tk.BooleanVar(),
+    'armored': tk.BooleanVar(),
+    'regenerating': tk.BooleanVar(),
+    'slowed': tk.BooleanVar(),
+    'confused': tk.BooleanVar(),
+    'disarmed': tk.BooleanVar()
+}
+
+
+def calculate():
+    attacker_level = int(attacker_level_entry.get())
+    attacker_strength = int(attacker_strength_entry.get())
+    attacker_intelligence = int(attacker_intelligence_entry.get())
+    attacker_dexterity = int(attacker_dexterity_entry.get())
+    attacker_agility = int(attacker_agility_entry.get())
+    attacker_stamina = int(attacker_stamina_entry.get())
+    attacker_willpower = int(attacker_willpower_entry.get())
+    attacker_perception = int(attacker_perception_entry.get())
+    attacker_focus = int(attacker_focus_entry.get())
+    attacker_luck = int(attacker_luck_entry.get())
+    attacker_charisma = int(attacker_charisma_entry.get())
+    attacker_wisdom = int(attacker_wisdom_entry.get())
+
+    defender_level = int(defender_level_entry.get())
+    defender_defense = int(defender_defense_entry.get())
+    defender_resistance = int(defender_resistance_entry.get())
+    defender_agility = int(defender_agility_entry.get())
+
+    # Weapon and spell stats
+    weapon_damage = int(weapon_damage_entry.get())
+    weapon_critical_chance = int(weapon_critical_chance_entry.get())
+    weapon_critical_damage = float(weapon_critical_damage_entry.get())
+    weapon_max_range = int(weapon_max_range_entry.get())
+
+    spell_damage = int(spell_damage_entry.get())
+    spell_critical_chance = float(spell_critical_chance_entry.get())
+    spell_critical_damage = int(spell_critical_damage_entry.get())
+
+    # Environmental factors
+    weather_condition_bonus = int(environment_weather_entry.get())
+    terrain_bonus = int(environment_terrain_entry.get())
+
+    # Range and distance
+    distance = int(distance_entry.get())
+    distance_penalty = -0.5 * math.pow((distance - weapon_max_range), 2) * (1 + random.uniform(0, 0.1))
+
+    # Movement
+    agility_bonus = attacker_agility - defender_agility
+    agility_multiplier = 1 + (0.05 * agility_bonus)
+
+    # Attacker status effects
+    status_effect_damage_bonus = 0
+    if "enraged" in attacker_status:
+        status_effect_damage_bonus += 0.2
+    if "bleeding" in attacker_status:
+        status_effect_damage_bonus += 0.1
+    if "poisoned" in attacker_status:
+        status_effect_damage_bonus += 0.1
+    if "burned" in attacker_status:
+        status_effect_damage_bonus += 0.1
+    if "stunned" in attacker_status:
+        status_effect_damage_bonus += 0.05
+    if "confused" in attacker_status:
+        status_effect_damage_bonus += 0.05
+    if "disarmed" in attacker_status:
+        status_effect_damage_bonus -= 0.2
+
+    # Defender status effects
+    status_effect_defense_penalty = 0
+    if "shielded" in defender_status:
+        status_effect_defense_penalty += 0.2
+    if "armored" in defender_status:
+        status_effect_defense_penalty += 0.1
+    if "regenerating" in defender_status:
+        status_effect_defense_penalty -= 0.1
+    if "slowed" in defender_status:
+        status_effect_defense_penalty -= 0.05
+    if "confused" in defender_status:
+        status_effect_defense_penalty -= 0.05
+    if "disarmed" in defender_status:
+        status_effect_defense_penalty += 0.2
+
+    # Calculate base damage
+    physical_base_damage = ((attacker_strength * weapon_damage) / (defender_defense + 100))
+    magical_base_damage = ((attacker_intelligence * spell_damage) / (defender_resistance + 100))
+
+    # Apply critical hit
+    physical_critical_hit = False
+    magical_critical_hit = False
+    crit_random = random.uniform(0, 0.1)
+    if weapon_critical_chance > crit_random:
+        physical_base_damage *= weapon_critical_damage
+        physical_critical_hit = True
+    if spell_critical_chance > random.uniform(0, 0.1):
+        magical_base_damage *= spell_critical_damage
+        magical_critical_hit = True
+
+    # Apply environmental bonuses and penalties
+    physical_base_damage *= (1 + weather_condition_bonus + terrain_bonus)
+    magical_base_damage *= (1 + weather_condition_bonus + terrain_bonus)
+
+    # Apply distance penalty
+    physical_base_damage *= (1 + distance_penalty)
+    magical_base_damage *= (1 + distance_penalty)
+
+    # Apply movement agility bonus
+    physical_base_damage *= agility_multiplier
+    magical_base_damage *= agility_multiplier
+
+    # Apply status effects bonuses and penalties
+    physical_base_damage *= (1 + status_effect_damage_bonus)
+    magical_base_damage *= (1 + status_effect_damage_bonus)
+    defender_defense *= (1 - status_effect_defense_penalty)
+    defender_resistance *= (1 - status_effect_defense_penalty)
+
+    # # Apply weakness and resistance effects
+    # if random.random(0, 0.1) < attacker_weakness_chance:
+    #     physical_base_damage *= 1.5
+    #     magical_base_damage *= 1.5
+    # if randomize.random() < defender_weakness_resistance:
+    #     physical_base_damage *= 0.5
+    #     magical_base_damage *= 0.5
+
+    # Return total damage
+    total_damage = round(physical_base_damage + magical_base_damage)
+
+    print(total_damage)
+
+    # Return information about the attack
+    total_damage_label.config(text=f'Total damage: {total_damage}')
+    physical_base_damage_label.config(text=f'Physical damage: {physical_base_damage}')
+    magical_base_damage_label.config(text=f'Magical damage: {magical_base_damage}')
+    physical_critical_hit_label.config(text=f'Physical Crit: {physical_critical_hit}')
+    magical_critical_hit_label.config(text=f'Magical Crit: {magical_critical_hit}')
+
+
+attacker_frame = tk.LabelFrame(root, text="Attacker Status")
+defender_frame = tk.LabelFrame(root, text="Defender Status")
+
+for i, status in enumerate(attacker_status.keys()):
+    cb = tk.Checkbutton(attacker_frame, text=status, variable=attacker_status[status])
+    cb.grid(row=i, column=0, sticky="w")
+
+for i, status in enumerate(defender_status.keys()):
+    cb = tk.Checkbutton(defender_frame, text=status, variable=defender_status[status])
+    cb.grid(row=i, column=0, sticky="w")
+
+attacker_frame.pack(side="left", padx=10, pady=10)
+defender_frame.pack(side="left", padx=10, pady=10)
+
+# Child Window
+stats_child = tk.Toplevel(root)
+stats_child.title('Stats Panel')
+stats_child.config(padx=10, pady=10)
+
+attacker_level_label = tk.Label(stats_child, text='Attacker Level:')
+attacker_level_label.grid(row=0, column=0)
+attacker_level_entry = tk.Entry(stats_child, width=10)
+attacker_level_entry.grid(row=0, column=1)
+
+attacker_strength_label = tk.Label(stats_child, text='Attacker Strength:')
+attacker_strength_label.grid(row=1, column=0)
+attacker_strength_entry = tk.Entry(stats_child, width=10)
+attacker_strength_entry.grid(row=1, column=1)
+
+attacker_intelligence_label = tk.Label(stats_child, text='Attacker Intelligence:')
+attacker_intelligence_label.grid(row=2, column=0)
+attacker_intelligence_entry = tk.Entry(stats_child, width=10)
+attacker_intelligence_entry.grid(row=2, column=1)
+
+attacker_dexterity_label = tk.Label(stats_child, text='Attacker Dexterity:')
+attacker_dexterity_label.grid(row=3, column=0)
+attacker_dexterity_entry = tk.Entry(stats_child, width=10)
+attacker_dexterity_entry.grid(row=3, column=1)
+
+attacker_agility_label = tk.Label(stats_child, text='Attacker Agility:')
+attacker_agility_label.grid(row=4, column=0)
+attacker_agility_entry = tk.Entry(stats_child, width=10)
+attacker_agility_entry.grid(row=4, column=1)
+
+attacker_stamina_label = tk.Label(stats_child, text='Attacker Stamina:')
+attacker_stamina_label.grid(row=5, column=0)
+attacker_stamina_entry = tk.Entry(stats_child, width=10)
+attacker_stamina_entry.grid(row=5, column=1)
+
+attacker_willpower_label = tk.Label(stats_child, text='Attacker Willpower:')
+attacker_willpower_label.grid(row=6, column=0)
+attacker_willpower_entry = tk.Entry(stats_child, width=10)
+attacker_willpower_entry.grid(row=6, column=1)
+
+attacker_perception_label = tk.Label(stats_child, text='Attacker Perception:')
+attacker_perception_label.grid(row=7, column=0)
+attacker_perception_entry = tk.Entry(stats_child, width=10)
+attacker_perception_entry.grid(row=7, column=1)
+
+attacker_focus_label = tk.Label(stats_child, text='Attacker Focus:')
+attacker_focus_label.grid(row=8, column=0)
+attacker_focus_entry = tk.Entry(stats_child, width=10)
+attacker_focus_entry.grid(row=8, column=1)
+
+attacker_luck_label = tk.Label(stats_child, text='Attacker Luck:')
+attacker_luck_label.grid(row=9, column=0)
+attacker_luck_entry = tk.Entry(stats_child, width=10)
+attacker_luck_entry.grid(row=9, column=1)
+
+attacker_charisma_label = tk.Label(stats_child, text='Attacker Charisma:')
+attacker_charisma_label.grid(row=10, column=0)
+attacker_charisma_entry = tk.Entry(stats_child, width=10)
+attacker_charisma_entry.grid(row=10, column=1)
+
+attacker_wisdom_label = tk.Label(stats_child, text='Attacker Wisdom:')
+attacker_wisdom_label.grid(row=11, column=0)
+attacker_wisdom_entry = tk.Entry(stats_child, width=10)
+attacker_wisdom_entry.grid(row=11, column=1)
+
+defender_level_label = tk.Label(stats_child, text='Defender Level:')
+defender_level_label.grid(row=0, column=2)
+defender_level_entry = tk.Entry(stats_child, width=10)
+defender_level_entry.grid(row=0, column=3)
+
+defender_defense_label = tk.Label(stats_child, text='Defender Defense:')
+defender_defense_label.grid(row=1, column=2)
+defender_defense_entry = tk.Entry(stats_child, width=10)
+defender_defense_entry.grid(row=1, column=3)
+
+defender_resistance_label = tk.Label(stats_child, text='Defender Resistance:')
+defender_resistance_label.grid(row=2, column=2)
+defender_resistance_entry = tk.Entry(stats_child, width=10)
+defender_resistance_entry.grid(row=2, column=3)
+
+defender_agility_label = tk.Label(stats_child, text='Defender Agility:')
+defender_agility_label.grid(row=3, column=2)
+defender_agility_entry = tk.Entry(stats_child, width=10)
+defender_agility_entry.grid(row=3, column=3)
+
+calculate_button = tk.Button(stats_child, text="Calculate", command=calculate)
+calculate_button.grid(row=6, column=2)
+
+weapon_damage_label = tk.Label(stats_child, text='Weapon Damage:')
+weapon_damage_label.grid(row=0, column=4)
+weapon_damage_entry = tk.Entry(stats_child, width=10)
+weapon_damage_entry.grid(row=0, column=5)
+weapon_critical_chance_label = tk.Label(stats_child, text='Weapon Crit Chance:')
+weapon_critical_chance_label.grid(row=1, column=4)
+weapon_critical_chance_entry = tk.Entry(stats_child, width=10)
+weapon_critical_chance_entry.grid(row=1, column=5)
+weapon_critical_damage_label = tk.Label(stats_child, text='Weapon Crit Damage:')
+weapon_critical_damage_label.grid(row=2, column=4)
+weapon_critical_damage_entry = tk.Entry(stats_child, width=10)
+weapon_critical_damage_entry.grid(row=2, column=5)
+weapon_max_range_label = tk.Label(stats_child, text='Weapon Max Range:')
+weapon_max_range_label.grid(row=3, column=4)
+weapon_max_range_entry = tk.Entry(stats_child, width=10)
+weapon_max_range_entry.grid(row=3, column=5)
+
+spell_damage_label = tk.Label(stats_child, text='Spell Damage:')
+spell_damage_label.grid(row=5, column=4)
+spell_damage_entry = tk.Entry(stats_child, width=10)
+spell_damage_entry.grid(row=5, column=5)
+spell_critical_chance_label = tk.Label(stats_child, text='Spell Crit Chance:')
+spell_critical_chance_label.grid(row=6, column=4)
+spell_critical_chance_entry = tk.Entry(stats_child, width=10)
+spell_critical_chance_entry.grid(row=6, column=5)
+spell_critical_damage_label = tk.Label(stats_child, text='Spell Crit Damage:')
+spell_critical_damage_label.grid(row=7, column=4)
+spell_critical_damage_entry = tk.Entry(stats_child, width=10)
+spell_critical_damage_entry.grid(row=7, column=5)
+
+environment_weather_label = tk.Label(stats_child, text='Weather:')
+environment_weather_label.grid(row=9, column=4)
+environment_weather_entry = tk.Entry(stats_child, width=10)
+environment_weather_entry.grid(row=9, column=5)
+environment_terrain_label = tk.Label(stats_child, text='Terrain:')
+environment_terrain_label.grid(row=10, column=4)
+environment_terrain_entry = tk.Entry(stats_child, width=10)
+environment_terrain_entry.grid(row=10, column=5)
+
+distance_label = tk.Label(stats_child, text='Distance:')
+distance_label.grid(row=12, column=4)
+distance_entry = tk.Entry(stats_child, width=10)
+distance_entry.grid(row=12, column=5)
+
+
+total_damage_label = tk.Label(stats_child, text='Total damage: 0')
+total_damage_label.grid(row=8, column=2)
+physical_base_damage_label = tk.Label(stats_child, text='Physical damage: 0')
+physical_base_damage_label.grid(row=9, column=2)
+magical_base_damage_label = tk.Label(stats_child, text='Magical damage: 0')
+magical_base_damage_label.grid(row=10, column=2)
+physical_critical_hit_label = tk.Label(stats_child, text='Physical Crit: ')
+physical_critical_hit_label.grid(row=11, column=2)
+magical_critical_hit_label = tk.Label(stats_child, text='Magical Crit: ')
+magical_critical_hit_label.grid(row=12, column=2)
+
+root.mainloop()
